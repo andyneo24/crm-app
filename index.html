@@ -83,9 +83,8 @@
   </table>
 </div>
 
-<!-- Firebase App (the core Firebase SDK) -->
+<!-- Firebase SDK Scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-<!-- Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
 
 <script>
@@ -103,6 +102,8 @@
   const app = firebase.initializeApp(firebaseConfig);
   const database = firebase.database(app);
 
+  console.log("Firebase initialized successfully!");
+
   // Function to add a new client
   function addClient() {
     const newClient = {
@@ -114,8 +115,19 @@
       timestamp: new Date().toLocaleString(),
     };
 
-    database.ref('clients').push(newClient); // Save to Firebase
-    alert('Client added successfully!');
+    // Save the client to Firebase
+    database.ref('clients').push(newClient)
+      .then(() => {
+        alert('Client added successfully!');
+        document.getElementById('name').value = '';
+        document.getElementById('contact').value = '';
+        document.getElementById('projectName').value = '';
+        document.getElementById('projectAmount').value = '';
+      })
+      .catch((error) => {
+        console.error("Error adding client:", error);
+        alert('Failed to add client. Please try again.');
+      });
   }
 
   // Function to fetch and display clients
@@ -150,7 +162,14 @@
   // Function to remove a client
   function removeClient(clientKey) {
     if (confirm('Are you sure you want to remove this client?')) {
-      database.ref(`clients/${clientKey}`).remove();
+      database.ref(`clients/${clientKey}`).remove()
+        .then(() => {
+          alert('Client removed successfully!');
+        })
+        .catch((error) => {
+          console.error("Error removing client:", error);
+          alert('Failed to remove client. Please try again.');
+        });
     }
   }
 
