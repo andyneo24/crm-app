@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 2px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Add New Client</h2>
+  <div>
+    <label>Name:</label>
+    <input id="name" placeholder="Enter client name">
+  </div>
+  <div>
+    <label>Contact:</label>
+    <input id="contact" placeholder="Enter contact number">
+  </div>
+  <div>
+    <label>Project Name:</label>
+    <input id="projectName" placeholder="Enter project name">
+  </div>
+  <div>
+    <label>Project Amount ($):</label>
+    <input id="projectAmount" type="number" placeholder="Enter project amount">
+  </div>
+  <button onclick="addClient()">Add Client</button>
+
+  <h2>All Clients</h2>
+  <table id="clientTable" border="1">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>Project Name</th>
+        <th>Project Amount ($)</th>
+        <th>Status</th>
+        <th>Timestamp</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Client rows will be dynamically added here -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Firebase SDK Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDBsZmtQOOUvQsSF9cv9E3n6YEJebYue6M",
+    authDomain: "crmandy-f359e.firebaseapp.com",
+    projectId: "crmandy-f359e",
+    storageBucket: "crmandy-f359e.firebasestorage.app",
+    messagingSenderId: "589546390516",
+    appId: "1:589546390516:web:857ad008b62268b063efa1"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const database = firebase.database(app);
+
+  console.log("Firebase initialized successfully!");
+
+  // Function to add a new client
+  function addClient() {
+    const newClient = {
+      name: document.getElementById('name').value,
+      contact: document.getElementById('contact').value,
+      projectName: document.getElementById('projectName').value,
+      projectAmount: document.getElementById('projectAmount').value,
+      status: 'not contacted',
+      timestamp: new Date().toLocaleString(),
+    };
+
+    // Save the client to Firebase
+    database.ref('clients').push(newClient)
+      .then(() => {
+        alert('Client added successfully!');
+        document.getElementById('name').value = '';
+        document.getElementById('contact').value = '';
+        document.getElementById('projectName').value = '';
+        document.getElementById('projectAmount').value = '';
+      })
+      .catch((error) => {
+        console.error("Error adding client:", error);
+        alert('Failed to add client. Please try again.');
+      });
+  }
+
+  // Function to fetch and display clients
+  function fetchClients() {
+    const clientTableBody = document.querySelector('#clientTable tbody');
+    clientTableBody.innerHTML = ''; // Clear existing rows
+
+    database.ref('clients').on('value', snapshot => {
+      snapshot.forEach(childSnapshot => {
+        const clientKey = childSnapshot.key; // Unique key for the client
+        const client = childSnapshot.val();
+
+        const row = `
+          <tr>
+            <td>${client.name}</td>
+            <td>${client.contact}</td>
+            <td>${client.projectName}</td>
+            <td>${client.projectAmount}</td>
+            <td>${client.status}</td>
+            <td>${client.timestamp}</td>
+            <td>
+              <button onclick="editClient('${clientKey}')">Edit</button>
+              <button onclick="removeClient('${clientKey}')">Remove</button>
+            </td>
+          </tr>
+        `;
+        clientTableBody.innerHTML += row;
+      });
+    });
+  }
+
+  // Function to remove a client
+  function removeClient(clientKey) {
+    if (confirm('Are you sure you want to remove this client?')) {
+      database.ref(`clients/${clientKey}`).remove()
+        .then(() => {
+          alert('Client removed successfully!');
+        })
+        .catch((error) => {
+          console.error("Error removing client:", error);
+          alert('Failed to remove client. Please try again.');
+        });
+    }
+  }
+
+  // Function to edit a client (placeholder for now)
+  function editClient(clientKey) {
+    alert(`Editing client with key: ${clientKey}`);
+    // You can implement an edit form here later
+  }
+
+  // Call the fetchClients function when the page loads
+  fetchClients();
+</script>
+</body>
+</html>
